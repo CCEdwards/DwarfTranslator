@@ -11,7 +11,6 @@ local replacements = {
     before = "ere", today = "todae", shit = "shite", shitty = "shite",
     fuck = "fook", fucking = "fookin'", ass = "arse", asshole = "arsehole",
     about = "'bout",
-    elf = "leaflicker",
     family = "kin",
     ["isn't"] = "ain't", is = "be", fucker = "fooker", fuckass = "fookarse",
     -- Deliberate verb list: never strip every -ing word.
