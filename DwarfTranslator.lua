@@ -105,20 +105,39 @@ frame:SetScript("OnEvent", function(_, event, name)
     if db then install() end
     if event == "PLAYER_LOGIN" then
         if registered then
-            say((db.enabled and "On" or "Off") .. ". /dwarf for help.")
+            say((db.enabled and "On" or "Off") .. ". /dwarf help for commands.")
         else
             say("Automatic conversion unavailable: this client lacks the supported pre-send API. /dwarf preview still works.")
         end
     end
 end)
 
+local function showHelp()
+    say("/dwarf help (or /dwarf) - Show all commands.")
+    say("/dwarf on - Enable the accent and d: language trigger.")
+    say("/dwarf off - Disable the accent and d: language trigger.")
+    say("/dwarf preview <text> - Preview the accent locally without sending.")
+    say("/dwarf channel <TYPE> on|off - Enable or disable processing for a chat type.")
+    local names = {}
+    for name in pairs(channels) do names[#names + 1] = name end
+    table.sort(names)
+    say("Chat types: " .. table.concat(names, ", "))
+    say("/dwarf keep <word> - Leave this word unchanged.")
+    say("/dwarf unkeep <word> - Remove that word exception.")
+    say("/dwarf status - Show enabled state and chat hook status.")
+    say("d: <message> - Use Dwarven for one Say/Yell message; your character must know it.")
+    say("~~ <message> - Bypass the accent for one message.")
+    say("/dwarftranslator is an alias for /dwarf. Prefixes require the addon and channel to be on.")
+end
 SLASH_DWARFTRANSLATOR1 = "/dwarf"
 SLASH_DWARFTRANSLATOR2 = "/dwarftranslator"
 SlashCmdList.DWARFTRANSLATOR = function(input)
     if not db then return end
     local command, rest = input:match("^%s*(%S*)%s*(.-)%s*$")
     command = command:lower()
-    if command == "on" or command == "off" then
+    if command == "help" or command == "" then
+        showHelp()
+    elseif command == "on" or command == "off" then
         db.enabled = command == "on"
         say("Accent " .. command .. ".")
     elseif command == "preview" then
@@ -138,8 +157,6 @@ SlashCmdList.DWARFTRANSLATOR = function(input)
     elseif command == "status" then
         say((db.enabled and "On" or "Off") .. "; pre-send hook " .. (registered and "registered" or "unavailable") .. ".")
     else
-        say("/dwarf on|off; /dwarf preview <text>")
-        say("/dwarf channel <TYPE> on|off; /dwarf keep|unkeep <word>; /dwarf status")
-        say("d: <message> uses Dwarven in Say/Yell. ~~ <message> bypasses the accent.")
+        say("Unknown command. Use /dwarf help for all commands.")
     end
 end

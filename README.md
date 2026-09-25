@@ -39,7 +39,7 @@ The style is inspired by Warcraft's Scots-flavored dwarf dialogue. It keeps the 
 | `/dwarf keep friend` | Preserve this word, regardless of capitalization |
 | `/dwarf unkeep friend` | Remove that exception |
 | `/dwarf status` | Show enabled state and hook registration |
-| `/dwarf` | Show help |
+| `/dwarf help` or `/dwarf` | Show all commands and message prefixes |
 
 `/dwarftranslator` is an alias for `/dwarf`. Settings are stored per character when the client supports saving and restoring addon settings. Some Forever beta builds have reported SavedVariables issues; if settings revert, apply the commands again.
 
