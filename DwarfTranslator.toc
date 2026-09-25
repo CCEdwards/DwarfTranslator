@@ -2,7 +2,7 @@
 ## Title: Dwarf Translator
 ## Notes: A readable dwarven accent for the chat you type.
 ## Author: DwarfTranslator contributors
-## Version: 0.2.0
+## Version: 0.3.0
 ## SavedVariablesPerCharacter: DwarfTranslatorDB
 Replacements.lua
 Accent.lua

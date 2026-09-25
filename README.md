@@ -1,4 +1,4 @@
-# Dwarf Translator 0.2.0
+# Dwarf Translator 0.3.0
 
 A local, English-language dwarven accent for chat you type in World of Warcraft: Forever. Enabled by default, with one consolidated replacement list in `Replacements.lua`. Conversion is either on or off. No account, API key, external service or library is needed.
 
