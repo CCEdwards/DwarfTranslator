@@ -1,25 +1,6 @@
 local _, addon = ...
 
-local replacements = {
-    you = "ye", your = "yer", yours = "yers", yourself = "yerself",
-    yourselves = "yerselves", ["you're"] = "ye're", ["you've"] = "ye've",
-    ["you'll"] = "ye'll", ["you'd"] = "ye'd", yes = "aye", yeah = "aye",
-    yep = "aye", nope = "nae", ["can't"] = "cannae",
-    to = "te", ["for"] = "fer", with = "wi'", without = "wi'out",
-    of = "o'", ["and"] = "an'", my = "mi", hello = "hullo",
-    little = "wee", friend = "mate", friends = "mates",
-    before = "ere", today = "todae", shit = "shite", shitty = "shite",
-    fuck = "fook", fucking = "fookin'", ass = "arse", asshole = "arsehole",
-    about = "'bout",
-    family = "kin",
-    ["isn't"] = "ain't", is = "be", fucker = "fooker", fuckass = "fookarse",
-    -- Deliberate verb list: never strip every -ing word.
-    going = "goin'", coming = "comin'", looking = "lookin'", fighting = "fightin'",
-    drinking = "drinkin'", running = "runnin'", waiting = "waitin'",
-    getting = "gettin'", doing = "doin'", talking = "talkin'", trying = "tryin'",
-    nothing = "nothin'", something = "somethin'", know = "ken",
-    small = "wee", very = "right",
-}
+local replacements = addon.Replacements
 local function caseLike(word, replacement)
     if word == word:upper() then return replacement:upper() end
     if word:sub(1, 1):match("%u") then

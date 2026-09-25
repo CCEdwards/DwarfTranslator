@@ -1,6 +1,6 @@
 # Dwarf Translator 0.2.0
 
-A local, English-language dwarven accent for chat you type in World of Warcraft: Forever. Enabled by default, with one consolidated replacement list in `Accent.lua`. Conversion is either on or off. No account, API key, external service or library is needed.
+A local, English-language dwarven accent for chat you type in World of Warcraft: Forever. Enabled by default, with one consolidated replacement list in `Replacements.lua`. Conversion is either on or off. No account, API key, external service or library is needed.
 
 ## Install
 
@@ -68,5 +68,5 @@ After installing:
 6. Test your usual party/guild channels and test during combat. If conversion is blocked, use `/dwarf off`; this addon does not bypass client restrictions.
 7. Reload and check `/dwarf status` to see whether this beta build restores saved settings.
 
-To uninstall, close WoW and remove only the `DwarfTranslator` folder from AddOns. To customize vocabulary, edit the tables in `Accent.lua`, then reload the UI.
+To uninstall, close WoW and remove only the `DwarfTranslator` folder from AddOns. To customize vocabulary, edit the table in `Replacements.lua`, then reload the UI.
 

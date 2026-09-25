@@ -4,5 +4,6 @@
 ## Author: DwarfTranslator contributors
 ## Version: 0.2.0
 ## SavedVariablesPerCharacter: DwarfTranslatorDB
+Replacements.lua
 Accent.lua
 DwarfTranslator.lua
