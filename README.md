@@ -2,12 +2,6 @@
 
 A local, English-language dwarven accent for chat you type in World of Warcraft: Forever. Enabled by default, with one consolidated replacement list in `Accent.lua`. Conversion is either on or off. No account, API key, external service or library is needed.
 
-## Upgrade from StoneSpeak
-
-Close WoW and remove the old `StoneSpeak` addon folder before installing `DwarfTranslator`, so both do not process the same message. This renamed addon starts with fresh per-character settings. The `/dwarf` command is unchanged; `/dwarftranslator` is the new long alias.
-
-All previous replacement lists are merged. These entries remain unchanged in chat: **cannot, wasn't, doesn't, didn't, won't, don't, aren't**. The **can't → cannae** replacement remains; **isn't → ain't** has been added.
-
 ## Install
 
 1. Close WoW completely.
@@ -17,7 +11,6 @@ All previous replacement lists are merged. These entries remain unchanged in cha
 5. Type `/dwarf status`. It should report **On; pre-send hook registered**.
 6. Chat normally. Your message changes when you press Enter, immediately before Blizzard sends it. Other players receive the converted text and do not need the addon.
 
-Targets interface **16001**, the current Forever beta interface identified during research on September 24, 2026. If a subsequent build marks it out of date, enabling “Load out of date AddOns” only bypasses the version check; it does not guarantee API compatibility.
 
 ## Examples
 
@@ -65,8 +58,6 @@ Supported chat types: SAY, YELL, PARTY, PARTY_LEADER, RAID, RAID_LEADER, RAID_WA
 
 ## Validation and in-game check
 
-Before the latest vocabulary update, validation outside WoW using Lua 5.1 passed **92 assertions**, exercising conversions, repeated conversion, capitalization, UTF-8, protected links/markup/URLs, length limits, settings, channels and a mocked pre-send event. The latest 11 requested mappings were checked directly against the replacement table; Lua checks could not be rerun because the local runtime was unavailable. **Not tested inside a running Forever client.** Combat restrictions and interactions with other chat addons require testing in the actual client.
-
 After installing:
 
 1. Run `/dwarf preview Hello friend, are you ready to go?` and check the example above.
@@ -78,15 +69,4 @@ After installing:
 7. Reload and check `/dwarf status` to see whether this beta build restores saved settings.
 
 To uninstall, close WoW and remove only the `DwarfTranslator` folder from AddOns. To customize vocabulary, edit the tables in `Accent.lua`, then reload the UI.
-
-## Research and implementation references
-
-- Blizzard, *Quest for Pandaria: Part 2*: dwarf dialogue uses “Ye”, “tae”, “an'”, “fer” and “yerself”. https://bnetcmsus-a.akamaihd.net/cms/template_resource/F4952B99G6CE1474321631366.pdf
-- Blizzard UI source mirror, `ChatFrameEditBox.lua`: `SendText` parses commands before `OnPreSendText`; the standard edit box emits `ChatFrame.OnEditBoxPreSendText` before reading and sending the message. https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameEditBox.lua
-- Blizzard UI source mirror, `CallbackRegistry.lua`: registered callbacks receive their owner before event arguments. https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_SharedXMLBase/CallbackRegistry.lua
-- EllesmereUI client gate: identifies Forever as the modern engine with a 1.60+ / 16001 interface. https://github.com/EllesmereGaming/EllesmereUI/blob/main/EllesmereUI_ClientGate.lua
-- ForeverTools author's installation guide: beta directory and current client requirements. https://warcraftforever.games/addons/forevertools
-- Wick's Mods author: beta settings persistence caveat. https://wicksmods.com/
-
-References checked September 24, 2026; addon updated September 25, 2026. Beta APIs may change. This package contains original addon code; no Blizzard assets are included.
 
