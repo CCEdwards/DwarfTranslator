@@ -76,3 +76,15 @@ To uninstall, close WoW and remove only the `DwarfTranslator` folder from AddOns
 
 
 Language implementation uses Blizzard's pre-send callback and `languageID` field ([UI source](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameEditBox.lua)). The character capability check uses `C_ChatInfo.CanPlayerSpeakLanguage` where available. Requires in-game validation on Forever.
+
+## Why translation sometimes pauses
+
+Blizzard limits what chat addons can change during combat and certain other situations. Dwarf Translator pauses during these times so you can keep chatting. Your messages go through exactly as you type them, without the dwarf accent.
+
+If you try to chat while translation is paused, you'll see a short message explaining why. Only you can see it, and it appears no more than once every 30 seconds to avoid filling your chat window. You won't see it when the addon is turned off.
+
+While paused, `d:` and `~~` won't work as shortcuts—they'll appear in your message as typed. In particular, `d:` won't switch your message to Dwarven, so don't rely on it to keep a message private.
+
+Everything resumes automatically when Blizzard's restrictions end. If the addon was still waiting to switch back from Dwarven, it will do that too. You can type `/dwarf status` to check whether translation is paused.
+
+Already seen an “action blocked by an addon” popup? Update the addon, then type `/reload` when you're out of combat. If it happens again, let us know what the popup says, which chat channel you used, whether you were in combat, and whether your message started with `d:`.

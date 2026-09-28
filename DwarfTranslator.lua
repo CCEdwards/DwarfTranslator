@@ -10,10 +10,25 @@ local channels = {
 local function say(message)
     if DEFAULT_CHAT_FRAME then DEFAULT_CHAT_FRAME:AddMessage("|cffffcc66Dwarf Translator:|r " .. message) end
 end
+-- Never mutate Blizzard's chat edit box while protected chat is restricted.
+local function chatRestricted()
+    if InCombatLockdown and InCombatLockdown() then return true end
+    return C_ChatInfo and C_ChatInfo.InChatMessagingLockdown
+        and C_ChatInfo.InChatMessagingLockdown() or false
+end
+local nextRestrictionNotice = 0
+local function notifyTranslationPaused()
+    if not db or not db.enabled then return end
+    local now = GetTime()
+    if now < nextRestrictionNotice then return end
+    nextRestrictionNotice = now + 30
+    say("Blizzard's combat/chat restrictions have temporarily paused translation. Messages pass through unchanged, including d: and ~~. Translation resumes automatically when restrictions end.")
+end
 -- WoW's Dwarvish language ID; availability is checked for the character.
 local DWARVEN_LANGUAGE_ID = 6
 local pendingLanguages = setmetatable({}, { __mode = "k" })
 local function restoreLanguage(editBox, pending)
+    if chatRestricted() then return end
     if pendingLanguages[editBox] ~= pending then return end
     if editBox.languageID == DWARVEN_LANGUAGE_ID then
         editBox.languageID = pending.previous
@@ -33,6 +48,12 @@ local function knowsDwarven()
     return false
 end
 local function preSend(_, editBox)
+    -- This must precede ALL edit-box access, including pending restoration.
+    -- Pass the original message through; do not even strip prefixes here.
+    if chatRestricted() then
+        notifyTranslationPaused()
+        return
+    end
     if not editBox then return end
     -- Restore before another send even if it happens before the timer runs.
     local pending = pendingLanguages[editBox]
@@ -94,6 +115,19 @@ end
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LOGIN")
+-- A language-restoration timer may fire just after combat/lockdown starts.
+-- Keep it pending and restore after restrictions end, even if no new chat is sent.
+local restoreElapsed = 0
+frame:SetScript("OnUpdate", function(_, elapsed)
+    if not next(pendingLanguages) then return end
+    restoreElapsed = restoreElapsed + elapsed
+    if restoreElapsed < 0.25 then return end
+    restoreElapsed = 0
+    if chatRestricted() then return end
+    for editBox, pending in pairs(pendingLanguages) do
+        restoreLanguage(editBox, pending)
+    end
+end)
 frame:SetScript("OnEvent", function(_, event, name)
     if event == "ADDON_LOADED" and name == addonName then
         if type(DwarfTranslatorDB) ~= "table" then DwarfTranslatorDB = {} end
@@ -124,7 +158,8 @@ local function showHelp()
     say("Chat types: " .. table.concat(names, ", "))
     say("/dwarf keep <word> - Leave this word unchanged.")
     say("/dwarf unkeep <word> - Remove that word exception.")
-    say("/dwarf status - Show enabled state and chat hook status.")
+    say("/dwarf status - Show enabled state, chat hook and restriction status.")
+    say("During combat/chat lockdown, messages pass through unchanged, including d: and ~~.")
     say("d: <message> - Use Dwarven for one Say/Yell message; your character must know it.")
     say("~~ <message> - Bypass the accent for one message.")
     say("/dwarftranslator is an alias for /dwarf. Prefixes require the addon and channel to be on.")
@@ -155,7 +190,7 @@ SlashCmdList.DWARFTRANSLATOR = function(input)
             say(channel .. " accent " .. state .. ".")
         else say("Usage: /dwarf channel SAY|YELL|PARTY|RAID|RAID_WARNING|GUILD|OFFICER|WHISPER|BN_WHISPER|INSTANCE_CHAT|CHANNEL|EMOTE on|off") end
     elseif command == "status" then
-        say((db.enabled and "On" or "Off") .. "; pre-send hook " .. (registered and "registered" or "unavailable") .. ".")
+        say((db.enabled and "On" or "Off") .. "; pre-send hook " .. (registered and "registered" or "unavailable") .. (chatRestricted() and "; paused for combat/chat lockdown." or "; chat editing available."))
     else
         say("Unknown command. Use /dwarf help for all commands.")
     end
