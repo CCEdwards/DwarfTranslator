@@ -81,7 +81,9 @@ Language implementation uses Blizzard's pre-send callback and `languageID` field
 
 Blizzard limits what chat addons can change during combat and certain other situations. Dwarf Translator pauses during these times so you can keep chatting. Your messages go through exactly as you type them, without the dwarf accent.
 
-If you try to chat while translation is paused, you'll see a short message explaining why. Only you can see it, and it appears no more than once every 30 seconds to avoid filling your chat window. You won't see it when the addon is turned off.
+If a combat pause skips a translation, you'll see: **“Combat pause: sending without translation.”** The addon checks whether your message would actually change, so ordinary messages that need no changes stay quiet. Successful translations, disabled channels, and the `~~` bypass don't trigger the notice either. The notice is only visible to you and appears at most once every 30 seconds.
+
+If you use `d:` during the pause, the notice also reminds you that it won't switch language. The addon leaves sending to WoW; it doesn't cancel or retry the message, and the notice isn't a delivery confirmation. Other chat restrictions use the same behavior with a “Chat restrictions” notice.
 
 While paused, `d:` and `~~` won't work as shortcuts—they'll appear in your message as typed. In particular, `d:` won't switch your message to Dwarven, so don't rely on it to keep a message private.
 

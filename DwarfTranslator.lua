@@ -16,14 +16,6 @@ local function chatRestricted()
     return C_ChatInfo and C_ChatInfo.InChatMessagingLockdown
         and C_ChatInfo.InChatMessagingLockdown() or false
 end
-local nextRestrictionNotice = 0
-local function notifyTranslationPaused()
-    if not db or not db.enabled then return end
-    local now = GetTime()
-    if now < nextRestrictionNotice then return end
-    nextRestrictionNotice = now + 30
-    say("Blizzard's combat/chat restrictions have temporarily paused translation. Messages pass through unchanged, including d: and ~~. Translation resumes automatically when restrictions end.")
-end
 -- WoW's Dwarvish language ID; availability is checked for the character.
 local DWARVEN_LANGUAGE_ID = 6
 local pendingLanguages = setmetatable({}, { __mode = "k" })
@@ -47,11 +39,49 @@ local function knowsDwarven()
     end
     return false
 end
+-- Read-only preview: determine whether this pause actually skips a change.
+local nextPauseNotice = 0
+local function skippedTranslation(editBox)
+    if not db or not db.enabled or not editBox then return false end
+    if editBox.IsForbidden and editBox:IsForbidden() then return false end
+    local chatType = editBox:GetAttribute("chatType")
+    if issecretvalue and issecretvalue(chatType) then return false end
+    if not channels[chatType] or db.channels[chatType] == false then return false end
+    local original = editBox:GetText()
+    if issecretvalue and issecretvalue(original) then return false end
+    if type(original) ~= "string" or not original:match("%S")
+        or original:match("^%s*/") or original:sub(1, 3) == "~~ " then
+        return false
+    end
+    local body = original:match("^d:%s*(.*)$")
+    if body then
+        return body:match("%S") ~= nil and not body:match("^%s*/")
+            and (chatType == "SAY" or chatType == "YELL") and knowsDwarven()
+            and C_Timer and C_Timer.After ~= nil, true
+    end
+    local converted = addon.Convert(original, db.keep)
+    local limit = editBox.GetMaxBytes and editBox:GetMaxBytes() or 0
+    if not limit or limit <= 0 then limit = 255 end
+    return converted ~= original and #converted <= limit, false
+end
+local function notifySkippedTranslation(editBox)
+    if not db or not db.enabled then return end
+    local now = GetTime()
+    if now < nextPauseNotice then return end
+    -- A failed preview must never interfere with Blizzard's normal send.
+    local ok, skipped, languageSkipped = pcall(skippedTranslation, editBox)
+    if not ok or not skipped then return end
+    nextPauseNotice = now + 30
+    local reason = (InCombatLockdown and InCombatLockdown()) and "Combat pause" or "Chat restrictions"
+    local message = reason .. ": sending without translation."
+    if languageSkipped then message = message .. " d: won't switch language." end
+    say(message)
+end
 local function preSend(_, editBox)
-    -- This must precede ALL edit-box access, including pending restoration.
-    -- Pass the original message through; do not even strip prefixes here.
+    -- No edit-box mutations during lockdown, including pending restoration.
+    -- Only inspect readable text to report a genuinely skipped translation.
     if chatRestricted() then
-        notifyTranslationPaused()
+        notifySkippedTranslation(editBox)
         return
     end
     if not editBox then return end
