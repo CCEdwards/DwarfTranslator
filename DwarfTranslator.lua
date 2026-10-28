@@ -1,5 +1,8 @@
 local addonName, addon = ...
 local db, registered
+function addon.GetDwarfIcon()
+    return "Interface\\Icons\\Achievement_Character_Dwarf_" .. ((db and db.femaleIcon) and "Female" or "Male")
+end
 local channels = {
     SAY = true, YELL = true, PARTY = true, PARTY_LEADER = true,
     RAID = true, RAID_LEADER = true, RAID_WARNING = true,
@@ -18,26 +21,45 @@ local function chatRestricted()
 end
 -- WoW's Dwarvish language ID; availability is checked for the character.
 local DWARVEN_LANGUAGE_ID = 6
+local COMMON_LANGUAGE_ID = 7
 local pendingLanguages = setmetatable({}, { __mode = "k" })
 local function restoreLanguage(editBox, pending)
     if chatRestricted() then return end
     if pendingLanguages[editBox] ~= pending then return end
-    if editBox.languageID == DWARVEN_LANGUAGE_ID then
+    if editBox.languageID == pending.target then
         editBox.languageID = pending.previous
     end
     pendingLanguages[editBox] = nil
 end
-local function knowsDwarven()
+local function knowsLanguage(target)
     if C_ChatInfo and C_ChatInfo.CanPlayerSpeakLanguage then
-        return C_ChatInfo.CanPlayerSpeakLanguage(DWARVEN_LANGUAGE_ID)
+        return C_ChatInfo.CanPlayerSpeakLanguage(target)
     end
     if GetNumLanguages and GetLanguageByIndex then
         for i = 1, GetNumLanguages() do
             local _, languageID = GetLanguageByIndex(i)
-            if languageID == DWARVEN_LANGUAGE_ID then return true end
+            if languageID == target then return true end
         end
     end
     return false
+end
+local function knowsDwarven() return knowsLanguage(DWARVEN_LANGUAGE_ID) end
+function addon.ToggleAlwaysDwarven()
+    if not db then return end
+    if not db.alwaysDwarven then
+        if not knowsDwarven() then
+            say("Your character cannot speak Dwarvish.")
+            return
+        end
+        if not C_Timer or not C_Timer.After then
+            say("This client cannot safely restore your chat language.")
+            return
+        end
+    end
+    db.alwaysDwarven = not db.alwaysDwarven
+    if addon.RefreshMinimap then addon.RefreshMinimap() end
+    if addon.RefreshSettings then addon.RefreshSettings() end
+    say("Always Dwarvish: " .. (db.alwaysDwarven and "on (Say/Yell)." or "off."))
 end
 -- Read-only preview: determine whether this pause actually skips a change.
 local nextPauseNotice = 0
@@ -56,10 +78,16 @@ local function skippedTranslation(editBox)
     local body = original:match("^d:%s*(.*)$")
     if body then
         return body:match("%S") ~= nil and not body:match("^%s*/")
-            and (chatType == "SAY" or chatType == "YELL") and knowsDwarven()
+            and (chatType == "SAY" or chatType == "YELL")
+            and knowsLanguage(db.alwaysDwarven and COMMON_LANGUAGE_ID or DWARVEN_LANGUAGE_ID)
             and C_Timer and C_Timer.After ~= nil, true
     end
-    local converted = addon.Convert(original, db.keep)
+    if db.alwaysDwarven and (chatType == "SAY" or chatType == "YELL")
+        and editBox.languageID ~= DWARVEN_LANGUAGE_ID and knowsDwarven()
+        and C_Timer and C_Timer.After then
+        return true, true
+    end
+    local converted = addon.Convert(original)
     local limit = editBox.GetMaxBytes and editBox:GetMaxBytes() or 0
     if not limit or limit <= 0 then limit = 255 end
     return converted ~= original and #converted <= limit, false
@@ -74,7 +102,7 @@ local function notifySkippedTranslation(editBox)
     nextPauseNotice = now + 30
     local reason = (InCombatLockdown and InCombatLockdown()) and "Combat pause" or "Chat restrictions"
     local message = reason .. ": sending without translation."
-    if languageSkipped then message = message .. " d: won't switch language." end
+    if languageSkipped then message = message .. " Language switch skipped." end
     say(message)
 end
 local function preSend(_, editBox)
@@ -102,12 +130,13 @@ local function preSend(_, editBox)
     local body = original:match("^d:%s*(.*)$")
     if body then
         local reason
+        local target = db.alwaysDwarven and COMMON_LANGUAGE_ID or DWARVEN_LANGUAGE_ID
         if not body:match("%S") or body:match("^%s*/") then
             reason = "Type a message after d:, not a slash command."
         elseif chatType ~= "SAY" and chatType ~= "YELL" then
-            reason = "Use d: in Say or Yell for the Dwarven language."
-        elseif not knowsDwarven() then
-            reason = "Your character cannot speak Dwarven."
+            reason = "Use d: in Say or Yell to switch language."
+        elseif not knowsLanguage(target) then
+            reason = "Your character cannot speak " .. (target == COMMON_LANGUAGE_ID and "Common." or "Dwarvish.")
         elseif not C_Timer or not C_Timer.After then
             reason = "This client cannot safely restore your chat language."
         end
@@ -118,7 +147,20 @@ local function preSend(_, editBox)
             return
         end
     end
-    local converted = addon.Convert(body or original, db.keep)
+    local targetLanguage
+    if body then
+        targetLanguage = db.alwaysDwarven and COMMON_LANGUAGE_ID or DWARVEN_LANGUAGE_ID
+    elseif db.alwaysDwarven and (chatType == "SAY" or chatType == "YELL") then
+        if knowsDwarven() and C_Timer and C_Timer.After then
+            targetLanguage = DWARVEN_LANGUAGE_ID
+        else
+            db.alwaysDwarven = false
+            if addon.RefreshMinimap then addon.RefreshMinimap() end
+            if addon.RefreshSettings then addon.RefreshSettings() end
+            say("Always Dwarvish turned off: language switching is unavailable.")
+        end
+    end
+    local converted = addon.Convert(body or original)
     local limit = editBox.GetMaxBytes and editBox:GetMaxBytes() or 0
     if not limit or limit <= 0 then limit = 255 end
     if #converted > limit then
@@ -126,11 +168,11 @@ local function preSend(_, editBox)
         converted = body or original
     end
     if converted ~= original then editBox:SetText(converted) end
-    if body then
-        pending = { previous = editBox.languageID }
+    if targetLanguage then
+        pending = { previous = editBox.languageID, target = targetLanguage }
         pendingLanguages[editBox] = pending
         -- Blizzard reads languageID immediately after this callback returns.
-        editBox.languageID = DWARVEN_LANGUAGE_ID
+        editBox.languageID = targetLanguage
         C_Timer.After(0, function() restoreLanguage(editBox, pending) end)
     end
 end
@@ -163,15 +205,18 @@ frame:SetScript("OnEvent", function(_, event, name)
         if type(DwarfTranslatorDB) ~= "table" then DwarfTranslatorDB = {} end
         db = DwarfTranslatorDB
         if type(db.enabled) ~= "boolean" then db.enabled = true end
-        if type(db.keep) ~= "table" then db.keep = {} end
+        if type(db.alwaysDwarven) ~= "boolean" then db.alwaysDwarven = false end
         if type(db.channels) ~= "table" then db.channels = {} end
+        addon.InitializeTranslations(db)
+        if addon.InitializeSettings then addon.InitializeSettings(db, channels) end
+        if addon.InitializeMinimap then addon.InitializeMinimap(db) end
     end
     if db then install() end
     if event == "PLAYER_LOGIN" then
         if registered then
             say((db.enabled and "On" or "Off") .. ". /dwarf help for commands.")
         else
-            say("Automatic conversion unavailable: this client lacks the supported pre-send API. /dwarf preview still works.")
+            say("Automatic conversion unavailable: this client lacks the supported pre-send API. Use the Preview section in addon settings.")
         end
     end
 end)
@@ -180,18 +225,12 @@ local function showHelp()
     say("/dwarf help (or /dwarf) - Show all commands.")
     say("/dwarf on - Enable the accent and d: language trigger.")
     say("/dwarf off - Disable the accent and d: language trigger.")
-    say("/dwarf preview <text> - Preview the accent locally without sending.")
-    say("/dwarf channel <TYPE> on|off - Enable or disable processing for a chat type.")
-    local names = {}
-    for name in pairs(channels) do names[#names + 1] = name end
-    table.sort(names)
-    say("Chat types: " .. table.concat(names, ", "))
-    say("/dwarf keep <word> - Leave this word unchanged.")
-    say("/dwarf unkeep <word> - Remove that word exception.")
+    say("/dwarf settings - Open settings (Right-click the minimap button).")
     say("/dwarf status - Show enabled state, chat hook and restriction status.")
     say("During combat/chat lockdown, messages pass through unchanged, including d: and ~~.")
-    say("d: <message> - Use Dwarven for one Say/Yell message; your character must know it.")
-    say("~~ <message> - Bypass the accent for one message.")
+    say("d: <message> - Switch one Say/Yell to Dwarvish, or Common if Always Dwarvish is on.")
+    say("Left-click the minimap button - Toggle Always Dwarvish for Say/Yell.")
+    say("~~ <message> - Bypass the accent and automatic language switch once.")
     say("/dwarftranslator is an alias for /dwarf. Prefixes require the addon and channel to be on.")
 end
 SLASH_DWARFTRANSLATOR1 = "/dwarf"
@@ -204,21 +243,11 @@ SlashCmdList.DWARFTRANSLATOR = function(input)
         showHelp()
     elseif command == "on" or command == "off" then
         db.enabled = command == "on"
+        if addon.RefreshMinimap then addon.RefreshMinimap() end
         say("Accent " .. command .. ".")
-    elseif command == "preview" then
-        say(addon.Convert(rest, db.keep))
-    elseif command == "keep" or command == "unkeep" then
-        if rest == "" then say("Usage: /dwarf " .. command .. " word") return end
-        db.keep[rest:lower()] = command == "keep" or nil
-        say(command == "keep" and "Word protected." or "Word protection removed.")
-    elseif command == "channel" then
-        local channel, state = rest:match("^(%S+)%s+(%S+)$")
-        channel = channel and channel:upper()
-        state = state and state:lower()
-        if channels[channel] and (state == "on" or state == "off") then
-            db.channels[channel] = state == "on"
-            say(channel .. " accent " .. state .. ".")
-        else say("Usage: /dwarf channel SAY|YELL|PARTY|RAID|RAID_WARNING|GUILD|OFFICER|WHISPER|BN_WHISPER|INSTANCE_CHAT|CHANNEL|EMOTE on|off") end
+        if addon.RefreshSettings then addon.RefreshSettings() end
+    elseif command == "settings" then
+        addon.OpenSettings()
     elseif command == "status" then
         say((db.enabled and "On" or "Off") .. "; pre-send hook " .. (registered and "registered" or "unavailable") .. (chatRestricted() and "; paused for combat/chat lockdown." or "; chat editing available."))
     else

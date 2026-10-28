@@ -6,4 +6,10 @@
 ## SavedVariablesPerCharacter: DwarfTranslatorDB
 Replacements.lua
 Accent.lua
+Translations.lua
 DwarfTranslator.lua
+Preview.lua
+Sharing.lua
+Settings.lua
+Minimap.lua
+Mail.lua

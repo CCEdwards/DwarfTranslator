@@ -8,23 +8,22 @@ local function caseLike(word, replacement)
     end
     return replacement
 end
-local function prose(text, keep)
+local function prose(text)
     -- Include digits/UTF-8 bytes in tokens so identifiers and non-English words
     -- containing an English substring are never partially rewritten.
     return (text:gsub("[%w_\128-\255]+['\226\128\153]*[%w_\128-\255']*", function(word)
         local key = word:gsub("\226\128\153", "'"):lower()
-        if keep and keep[key] then return word end
         local replacement = replacements[key]
         return replacement and caseLike(word, replacement) or word
     end))
 end
 
-function addon.Convert(text, keep)
+function addon.Convert(text)
     if type(text) ~= "string" or text == "" or text:match("^%s*/") then return text end
     local result, plain, i = {}, {}, 1
     local function flush()
         if #plain > 0 then
-            result[#result + 1] = prose(table.concat(plain), keep)
+            result[#result + 1] = prose(table.concat(plain))
             plain = {}
         end
     end
