@@ -4,7 +4,11 @@ local function notice(text)
     if DEFAULT_CHAT_FRAME then DEFAULT_CHAT_FRAME:AddMessage("|cffffcc66Dwarf Translator:|r " .. text) end
 end
 local function install()
-    if button or not SendMailFrame or not SendMailBodyEditBox or not MailFrameTab2 then return end
+    if button then
+        addon.RefreshMailIcon()
+        return
+    end
+    if not SendMailFrame or not SendMailBodyEditBox or not MailFrameTab2 then return end
     button = CreateFrame("Button", "DwarfTranslatorMailTranslate", SendMailFrame)
     button:SetSize(28, 28)
     -- Anchor beside the Send Mail tab at the bottom of the mailbox.

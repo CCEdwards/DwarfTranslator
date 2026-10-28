@@ -63,8 +63,7 @@ function addon.InitializeSettings(db, channels)
         function() return db.femaleIcon == true end,
         function(value)
             db.femaleIcon = value
-            if addon.RefreshMinimap then addon.RefreshMinimap() end
-            if addon.RefreshMailIcon then addon.RefreshMailIcon() end
+            addon.RefreshIcons()
         end)
     local y = -190 - math.ceil(#names / 2) * 30
     label("d: message - Switch Dwarvish/Common for one Say/Yell.", 16, y)

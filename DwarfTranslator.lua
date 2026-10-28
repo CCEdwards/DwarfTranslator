@@ -7,7 +7,11 @@ function addon.SetEnabled(enabled)
     if addon.RefreshSettings then addon.RefreshSettings() end
 end
 function addon.GetDwarfIcon()
-    return "Interface\\Icons\\Achievement_Character_Dwarf_" .. ((db and db.femaleIcon) and "Female" or "Male")
+    return "Interface\\Icons\\Achievement_Character_Dwarf_" .. ((db and db.femaleIcon == true) and "Female" or "Male")
+end
+function addon.RefreshIcons()
+    if addon.RefreshMinimap then addon.RefreshMinimap() end
+    if addon.RefreshMailIcon then addon.RefreshMailIcon() end
 end
 local channels = {
     SAY = true, YELL = true, PARTY = true, PARTY_LEADER = true,
@@ -210,11 +214,13 @@ frame:SetScript("OnEvent", function(_, event, name)
         if type(DwarfTranslatorDB) ~= "table" then DwarfTranslatorDB = {} end
         db = DwarfTranslatorDB
         if type(db.enabled) ~= "boolean" then db.enabled = true end
+        if type(db.femaleIcon) ~= "boolean" then db.femaleIcon = false end
         if type(db.alwaysDwarven) ~= "boolean" then db.alwaysDwarven = false end
         if type(db.channels) ~= "table" then db.channels = {} end
         addon.InitializeTranslations(db)
         if addon.InitializeSettings then addon.InitializeSettings(db, channels) end
         if addon.InitializeMinimap then addon.InitializeMinimap(db) end
+        addon.RefreshIcons()
     end
     if db then install() end
     if event == "PLAYER_LOGIN" then
