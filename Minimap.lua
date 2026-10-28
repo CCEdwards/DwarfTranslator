@@ -6,7 +6,40 @@ function addon.InitializeMinimap(db)
     button:SetSize(32, 32)
     button:SetFrameStrata("MEDIUM")
     button:SetFrameLevel(Minimap:GetFrameLevel() + 5)
-    button:SetPoint("CENTER", Minimap, "BOTTOMLEFT", 16, 16)
+    if type(db.minimapAngle) ~= "number" or db.minimapAngle ~= db.minimapAngle
+        or math.abs(db.minimapAngle) == math.huge then db.minimapAngle = 225 end
+    local dragged = false
+    local function position()
+        local angle = math.rad(db.minimapAngle)
+        button:ClearAllPoints()
+        button:SetPoint("CENTER", Minimap, "CENTER",
+            math.cos(angle) * (Minimap:GetWidth() / 2 + 5),
+            math.sin(angle) * (Minimap:GetHeight() / 2 + 5))
+    end
+    local function drag()
+        local x, y = GetCursorPosition()
+        local centerX, centerY = Minimap:GetCenter()
+        if not centerX or not centerY then return end
+        local scale = Minimap:GetEffectiveScale()
+        local dx, dy = x / scale - centerX, y / scale - centerY
+        if dx == 0 and dy == 0 then return end
+        db.minimapAngle = math.deg(math.atan2(dy, dx)) % 360
+        position()
+    end
+    position()
+    button:RegisterForDrag("LeftButton")
+    button:SetScript("OnMouseDown", function() dragged = false end)
+    button:SetScript("OnDragStart", function(self)
+        dragged = true
+        GameTooltip:Hide()
+        self:SetScript("OnUpdate", drag)
+        drag()
+    end)
+    button:SetScript("OnDragStop", function(self)
+        self:SetScript("OnUpdate", nil)
+        drag()
+    end)
+    button:SetScript("OnHide", function(self) self:SetScript("OnUpdate", nil) end)
     button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     button:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
     local icon = button:CreateTexture(nil, "BACKGROUND")
@@ -50,6 +83,7 @@ function addon.InitializeMinimap(db)
     end
     addon.RefreshMinimap()
     button:SetScript("OnClick", function(_, mouseButton)
+        if dragged then dragged = false; return end
         if mouseButton == "LeftButton" then
             addon.ToggleAlwaysDwarven()
             GameTooltip:Hide()
@@ -70,6 +104,7 @@ function addon.InitializeMinimap(db)
         GameTooltip:AddLine(db.enabled and "Enabled" or "Disabled", 1, 1, 1)
         GameTooltip:AddLine("Always Dwarvish: " .. (db.alwaysDwarven and "On" or "Off"), 1, 1, 1)
         GameTooltip:AddLine("Left-click: Toggle Always Dwarvish", 1, 1, 1)
+        GameTooltip:AddLine("Left-drag: reposition", 1, 1, 1)
         GameTooltip:AddLine("Right-click: settings", 1, 1, 1)
         GameTooltip:AddLine("Alt + right-click: hide button", 1, 1, 1)
         GameTooltip:Show()
