@@ -1,92 +1,90 @@
-# Dwarf Translator 0.3.1
+# Dwarf Translator
 
-A local, English-language dwarven accent for chat you type in World of Warcraft: Forever. Enabled by default, with one consolidated replacement list in `Replacements.lua`. When enabled, normal messages receive the accent. Prefix a Say or Yell message with `d:` to also select the actual in-game Dwarven language for that message. No account, API key, external service or library is needed.
+Give your chat a little dwarven character. Dwarf Translator changes the words you type into a readable Warcraft dwarf accent, using a translation list you can make your own.
 
-## Install
-
-1. Close WoW completely.
-2. Extract DwarfTranslator.zip into your Forever client's `Interface\AddOns` directory. The beta directory is typically `World of Warcraft\_classic_beta_\Interface\AddOns`.
-3. Confirm the file is at `Interface\AddOns\DwarfTranslator\DwarfTranslator.toc`, without an extra nested DwarfTranslator folder.
-4. Start Forever and enable **Dwarf Translator** in the AddOns list for your character.
-5. Type `/dwarf status`. It should report **On; pre-send hook registered**.
-6. Chat normally for the accent, or use `/s d: Hello friend` for the in-game Dwarven language as well. Your message changes when you press Enter, immediately before Blizzard sends it. Other players receive the converted text and do not need the addon.
-
-
-## Examples
-
-> Hello friend, are you ready to go?
+> Hello my friend! Are you coming with my family today?
 >
-> Hullo mate, are ye ready te go?
+> Hullo mi mate! Are ye comin' wi' mi kin todae?
 
-> Yes! Don't forget your little shield.
->
-> Aye! Don't forget yer wee shield.
+Other players don't need the addon to see your translated messages.
 
-> I'm going to look for your friends.
->
-> I'm goin' te look fer yer mates.
+## Getting started
 
-The style is inspired by Warcraft's Scots-flavored dwarf dialogue. It keeps the original message's meaning instead of inventing ale, beard or clan remarks. This is a predictable word-based transformation, not an AI paraphraser, a full Scots translator, or a translation of the in-game Dwarven vocabulary. It cannot infer every grammatical context or recognize all proper names.
+1. Put the `DwarfTranslator` folder in your game's `Interface\AddOns` folder.
+2. Start WoW and enable **Dwarf Translator** in the AddOns list.
+3. Chat normally. The addon starts enabled and applies the accent when you send a message.
+4. Type `/dwarf settings` to choose your preferences.
 
-## Commands
+After updating an existing installation, type `/reload` to load the changes. Restart WoW after the first installation.
 
-| Command | Effect |
+## Make it yours
+
+Open **Settings > AddOns > Dwarf Translator**, or right-click the dwarf minimap icon.
+
+- **General settings:** turn the addon on or off, choose the chat types it translates, enable Always Dwarvish, and choose a male or female dwarf icon. You can also hide or show the minimap button.
+- **Translations:** add words, change replacements, or remove words you don't want translated. Changes apply immediately.
+- **Preview:** try an editable sample or your own text and see the translated result without sending anything. **Reset sample text** brings back the example.
+- **Import / Export:** copy your translation list to share with friends or save as a backup. Paste an exported list to import it. A confirmation warns you before replacing your current list.
+
+Your preferences and custom translations are saved per character. Updating the addon keeps edits made through the in-game settings, including removed translations. Use the in-game editor for personal changes; edits made directly to the bundled files can be overwritten by updates.
+
+Want to start fresh? **Reset translations** in the Translations section restores the installed addon's default list after a confirmation. It clears custom words, edits, and removals while keeping your other addon options.
+
+## Accent or actual Dwarvish?
+
+The accent changes the spelling of your message. **Always Dwarvish** also requests WoW's actual Dwarvish language for Say and Yell. Your character must know that language, and WoW decides which players understand it.
+
+You can switch language for a single Say or Yell message with `d:`:
+
+| Always Dwarvish | What `d: Hello my friend` does |
 | --- | --- |
-| `/dwarf on` / `/dwarf off` | Enable or disable conversion |
-| `/dwarf preview Hello friend` | Print a converted example locally; sends nothing to others |
-| `/dwarf channel WHISPER off` | Disable the accent in that chat type |
-| `/dwarf channel WHISPER on` | Re-enable it |
-| `/dwarf keep friend` | Preserve this word, regardless of capitalization |
-| `/dwarf unkeep friend` | Remove that exception |
-| `/dwarf status` | Show enabled state and hook registration |
-| `/dwarf help` or `/dwarf` | Show all commands and message prefixes |
+| Off | Applies the accent and sends in Dwarvish |
+| On | Applies the accent and sends in Common |
 
-`/dwarftranslator` is an alias for `/dwarf`. Settings are stored per character when the client supports saving and restoring addon settings. Some Forever beta builds have reported SavedVariables issues; if settings revert, apply the commands again.
+The prefix is removed before sending, and the previous language is restored afterward. Your character must know the requested language. These shortcuts require the addon and chat type to be enabled.
 
-Use lowercase **`d:`** at the start of a Say or Yell message, for example `/s d: Hello my friend`. The prefix is removed, the accent is applied, and the message is sent with WoW's **Dwarven (Dwarvish) language ID**, rather than Common. Both `d: Hello` and `d:Hello` work. Your character must know Dwarven. The previous language selection is restored after sending; ordinary messages retain the language you had selected.
+Start a message with `~~ ` to skip both the accent and automatic language switching once.
 
-The addon cancels `d:` messages with a local explanation if the character cannot speak Dwarven, the chat type is not Say/Yell, or the body is empty or starts with a slash command. It does not fall back to Common in these cases. Blizzard controls who understands racial languages and may normalize language in some contexts; this is roleplay functionality, not private messaging. Verify it in Forever with another player who does not know Dwarven, including while grouped.
+## Minimap shortcuts
 
-When the addon or channel is off, it does not process the prefix or change the message. Start a message with `~~ ` to bypass the accent once (the bypass prefix is removed). `/dwarf preview <text>` only previews accent spelling locally and does not switch language.
+| Action | What it does |
+| --- | --- |
+| Left-click | Toggle Always Dwarvish |
+| Right-click | Open settings |
+| Alt + right-click | Hide the minimap button |
 
-Supported chat types: SAY, YELL, PARTY, PARTY_LEADER, RAID, RAID_LEADER, RAID_WARNING, GUILD, OFFICER, WHISPER, BN_WHISPER, INSTANCE_CHAT, INSTANCE_CHAT_LEADER, CHANNEL, EMOTE. All start enabled. CHANNEL controls numbered channels together. EMOTE includes custom `/e` text; use `/dwarf channel EMOTE off` if you prefer unchanged action descriptions.
+A yellow ring means Always Dwarvish is on. A red ring means the addon is off. No ring means the addon is on with Always Dwarvish off. To bring back a hidden button, open `/dwarf settings` and enable **Show minimap button**.
 
-## Preservation and scope
+## Translate a mail draft
 
-- Keeps item/spell/quest/player hyperlinks, color spans, textures, atlas markup, raid markers, square-bracketed text and backtick-delimited text intact. Backticks remain in the message.
-- Keeps common URLs, email addresses, identifiers and UTF-8 words intact. English word substitutions preserve uppercase or initial capitalization.
-- Blizzard parses chat commands and whisper recipients before the callback. DwarfTranslator changes only the remaining message body, not recipient/channel selection. Other slash commands are not rewritten.
-- Does not intercept `SendChatMessage`, automate sending, or alter addon communication. Macros, addon-generated messages, custom third-party chat editors and separate community/Discord interfaces are outside the supported scope unless they use Blizzard's standard pre-send event.
-- If conversion would exceed the edit box's byte limit (255-byte fallback), sends the original message and prints a local explanation. Never splits or truncates it to make the accent fit.
-- Uses a supported pre-send notification. Missing API support produces a login notice rather than replacing protected send functions. Hook registration alone is not proof that a changed beta client will dispatch the event.
+On the mailbox's **Send Mail** tab, click the dwarf icon beside the tab. Its tooltip says **Translate to Dwarf**.
 
-## Validation and in-game check
+This applies your accent translations to the message body so you can review it before sending. It leaves the recipient, subject, attachments, and money alone. It doesn't send the mail or select a racial language. This manual tool is available independently of automatic chat translation.
 
-After installing:
+## During combat
 
-1. Run `/dwarf preview Hello friend, are you ready to go?` and check the example above.
-2. Send `/s d: Hello friend, are you ready to go?` and verify the Dwarven language with another player. Then send an ordinary message and verify your previous language is restored.
-3. Whisper someone you choose with an item link and confirm the recipient and link remain correct.
-4. Send `/s ~~ You are ready.` and check that it stays unchanged.
-5. Run `/dwarf off`, send a test line, then `/dwarf on`.
-6. Test your usual party/guild channels and test during combat. If conversion is blocked, use `/dwarf off`; this addon does not bypass client restrictions.
-7. Reload and check `/dwarf status` to see whether this beta build restores saved settings.
+Blizzard sometimes restricts what addons can change in chat. During combat or chat restrictions, Dwarf Translator leaves your outgoing message alone and pauses both accent changes and automatic language switching.
 
-To uninstall, close WoW and remove only the `DwarfTranslator` folder from AddOns. To customize vocabulary, edit the table in `Replacements.lua`, then reload the UI.
+When a change is skipped, you may see:
 
+> Combat pause: sending without translation or language switch.
 
-Language implementation uses Blizzard's pre-send callback and `languageID` field ([UI source](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameEditBox.lua)). The character capability check uses `C_ChatInfo.CanPlayerSpeakLanguage` where available. Requires in-game validation on Forever.
+The notice is local and limited to once every 30 seconds. Messages that don't need changes stay quiet. Sending remains handled by WoW; the notice doesn't confirm delivery.
 
-## Why translation sometimes pauses
+While paused, `d:` and `~~` stay in the message as typed, and WoW uses its currently selected language. Processing resumes when restrictions end.
 
-Blizzard limits what chat addons can change during combat and certain other situations. Dwarf Translator pauses during these times so you can keep chatting. Your messages go through exactly as you type them, without the dwarf accent.
+## Chat commands
 
-If a combat pause skips a translation, you'll see: **“Combat pause: sending without translation.”** The addon checks whether your message would actually change, so ordinary messages that need no changes stay quiet. Successful translations, disabled channels, and the `~~` bypass don't trigger the notice either. The notice is only visible to you and appears at most once every 30 seconds.
+| Command | What it does |
+| --- | --- |
+| `/dwarf` or `/dwarf help` | Show help |
+| `/dwarf on` | Enable Dwarf Translator |
+| `/dwarf off` | Disable Dwarf Translator |
+| `/dwarf settings` | Open addon settings |
+| `/dwarf status` | Show addon state and chat restriction status |
 
-If you use `d:` during the pause, the notice also reminds you that it won't switch language. The addon leaves sending to WoW; it doesn't cancel or retry the message, and the notice isn't a delivery confirmation. Other chat restrictions use the same behavior with a “Chat restrictions” notice.
+`/dwarftranslator` also works in place of `/dwarf`.
 
-While paused, `d:` and `~~` won't work as shortcuts—they'll appear in your message as typed. In particular, `d:` won't switch your message to Dwarven, so don't rely on it to keep a message private.
+## A few things to know
 
-Everything resumes automatically when Blizzard's restrictions end. If the addon was still waiting to switch back from Dwarven, it will do that too. You can type `/dwarf status` to check whether translation is paused.
-
-Already seen an “action blocked by an addon” popup? Update the addon, then type `/reload` when you're out of combat. If it happens again, let us know what the popup says, which chat channel you used, whether you were in combat, and whether your message started with `d:`.
+The addon uses word replacements rather than rewriting whole sentences. Item links, URLs, and other supported chat formatting are preserved. It works with WoW's normal chat input; messages sent by macros or other addons may not pass through it.
