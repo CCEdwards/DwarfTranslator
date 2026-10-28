@@ -1,5 +1,11 @@
 local addonName, addon = ...
 local db, registered
+function addon.SetEnabled(enabled)
+    if not db then return end
+    db.enabled = enabled == true
+    if addon.RefreshMinimap then addon.RefreshMinimap() end
+    if addon.RefreshSettings then addon.RefreshSettings() end
+end
 function addon.GetDwarfIcon()
     return "Interface\\Icons\\Achievement_Character_Dwarf_" .. ((db and db.femaleIcon) and "Female" or "Male")
 end
@@ -101,8 +107,7 @@ local function notifySkippedTranslation(editBox)
     if not ok or not skipped then return end
     nextPauseNotice = now + 30
     local reason = (InCombatLockdown and InCombatLockdown()) and "Combat pause" or "Chat restrictions"
-    local message = reason .. ": sending without translation."
-    if languageSkipped then message = message .. " Language switch skipped." end
+    local message = reason .. ": sending without translation or language switch."
     say(message)
 end
 local function preSend(_, editBox)
@@ -223,8 +228,8 @@ end)
 
 local function showHelp()
     say("/dwarf help (or /dwarf) - Show all commands.")
-    say("/dwarf on - Enable the accent and d: language trigger.")
-    say("/dwarf off - Disable the accent and d: language trigger.")
+    say("/dwarf on - Enable Dwarf Translator.")
+    say("/dwarf off - Disable Dwarf Translator.")
     say("/dwarf settings - Open settings (Right-click the minimap button).")
     say("/dwarf status - Show enabled state, chat hook and restriction status.")
     say("During combat/chat lockdown, messages pass through unchanged, including d: and ~~.")
@@ -242,10 +247,8 @@ SlashCmdList.DWARFTRANSLATOR = function(input)
     if command == "help" or command == "" then
         showHelp()
     elseif command == "on" or command == "off" then
-        db.enabled = command == "on"
-        if addon.RefreshMinimap then addon.RefreshMinimap() end
-        say("Accent " .. command .. ".")
-        if addon.RefreshSettings then addon.RefreshSettings() end
+        addon.SetEnabled(command == "on")
+        say(db.enabled and "Addon enabled." or "Addon disabled.")
     elseif command == "settings" then
         addon.OpenSettings()
     elseif command == "status" then

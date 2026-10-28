@@ -30,10 +30,7 @@ function addon.InitializeSettings(db, channels)
         checks[#checks + 1] = check
     end
     checkbox("Enable Dwarf Translator", 16, -76,
-        function() return db.enabled end, function(value)
-            db.enabled = value
-            if addon.RefreshMinimap then addon.RefreshMinimap() end
-        end)
+        function() return db.enabled end, addon.SetEnabled)
     label("Translate in these chat types", 16, -154, "GameFontNormal")
     local labels = {
         SAY = "Say", YELL = "Yell", PARTY = "Party", PARTY_LEADER = "Party leader",
