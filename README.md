@@ -50,6 +50,7 @@ Start a message with `~~ ` to skip both the accent and automatic language switch
 | Action | What it does |
 | --- | --- |
 | Left-click | Toggle Always Dwarvish |
+| Left-drag | Move the button around the minimap; position saves per character |
 | Right-click | Open settings |
 | Alt + right-click | Hide the minimap button |
 
